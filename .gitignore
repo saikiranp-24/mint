@@ -1,0 +1,7 @@
+*.html
+app.py
+templates/
+static/
+WEB-INF/
+.venv/
+.ruff_cache/
