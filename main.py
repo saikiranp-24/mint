@@ -37,6 +37,19 @@ def flask(fp):
         </html>
         """).strip()
 
+    app_content = textwrap.dedent("""
+        from flask import Flask, render_template
+
+        app = Flask(__name__)
+
+        @app.route('/')
+        def index():
+            return render_template('index.html')
+
+        if __name__ == '__main__':
+            app.run(debug=True)
+        """).strip()
+
     click.echo(static_folder)
     click.echo(base_html)
     click.echo(app)
@@ -47,6 +60,7 @@ def flask(fp):
     app.touch(exist_ok=True)
 
     base_html.write_text(html_content)
+    app.write_text(app_content)
 
     click.secho("Flask boilerplate generated successfully!", fg="green", bold=True)
 
