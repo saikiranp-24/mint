@@ -41,7 +41,7 @@ def flask(fp):
         """).strip()
 
     index_content = textwrap.dedent("""
-        {%extends "base.html" %}
+        {% extends "base.html" %}
 
         {% block title %}Home{% endblock %}
         {% block head %}
@@ -140,6 +140,27 @@ def servlet(fp):
     web_inf = fp / 'WEB-INF'
     classes = web_inf / 'classes'
     xml = web_inf / 'web.xml'
+
+    web_inf.mkdir(exist_ok=True)
+    classes.mkdir(exist_ok=True)
+    xml.touch(exist_ok=True)
+
+    xml_content = textwrap.dedent("""
+        <web-app>
+            <servlet>
+                <servlet-name></servlet-name>
+                <servlet-class></servlet-class>
+            </servlet>
+            <servlet-mapping>
+                <servlet-name></servlet-name>
+                <url-pattern></url-pattern>
+            </servlet-mapping>
+        </web-app>
+        """).strip()
+    
+    xml.write_text(xml_content)
+
+    click.secho("Boilerplate generated successfully!", fg='green', bold=True)
 
 
 
