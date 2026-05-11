@@ -119,9 +119,6 @@ def flask(fp):
             app.run(debug=True)
         """).strip()
 
-    click.echo(static_folder)
-    click.echo(base_html)
-    click.echo(app)
 
     static_folder.mkdir(exist_ok=True)
     base_html.parent.mkdir(parents=True, exist_ok=True)
