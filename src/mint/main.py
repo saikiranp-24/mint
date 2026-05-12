@@ -24,7 +24,7 @@ def flask(fp):
     index_html = fp / 'templates' / 'index.html'
     app = fp / 'app.py'
 
-    base_content = textwrap.dedent("""
+    base_content = textwrap.dedent("""\
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -38,9 +38,9 @@ def flask(fp):
             {% block content %}{% endblock %}
         </body>
         </html>
-        """).strip()
+        """)
 
-    index_content = textwrap.dedent("""
+    index_content = textwrap.dedent("""\
         {% extends "base.html" %}
 
         {% block title %}Home{% endblock %}
@@ -104,9 +104,9 @@ def flask(fp):
                 </div>
             </div>
         {% endblock %}
-    """).strip()
+    """)
 
-    app_content = textwrap.dedent("""
+    app_content = textwrap.dedent("""\
         from flask import Flask, render_template
 
         app = Flask(__name__)
@@ -117,7 +117,7 @@ def flask(fp):
 
         if __name__ == '__main__':
             app.run(debug=True)
-        """).strip()
+        """)
 
 
     static_folder.mkdir(exist_ok=True)
@@ -142,7 +142,7 @@ def servlet(fp):
     classes.mkdir(exist_ok=True)
     xml.touch(exist_ok=True)
 
-    xml_content = textwrap.dedent("""
+    xml_content = textwrap.dedent("""\
         <web-app>
             <servlet>
                 <servlet-name></servlet-name>
@@ -153,7 +153,7 @@ def servlet(fp):
                 <url-pattern></url-pattern>
             </servlet-mapping>
         </web-app>
-        """).strip()
+        """)
     
     xml.write_text(xml_content)
 
