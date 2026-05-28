@@ -18,12 +18,10 @@ def main(target, folder):
 
 
 def flask(base_dir):
-
     static_folder = base_dir / 'static'
     base_html = base_dir / 'templates' / 'base.html'
     index_html = base_dir / 'templates' / 'index.html'
     app = base_dir / 'app.py'
-
 
     try:
         base_dir.mkdir(exist_ok=False)
@@ -49,7 +47,7 @@ def flask(base_dir):
                 {% block content %}{% endblock %}
             </body>
             </html>
-            """)
+        """)
 
         index_content = textwrap.dedent("""\
             {% extends "base.html" %}
@@ -155,16 +153,16 @@ def servlet(base_dir):
         xml.touch(exist_ok=True)
 
         xml_content = textwrap.dedent("""\
-        <web-app>
-            <servlet>
-                <servlet-name></servlet-name>
-                <servlet-class></servlet-class>
-            </servlet>
-            <servlet-mapping>
-                <servlet-name></servlet-name>
-                <url-pattern></url-pattern>
-            </servlet-mapping>
-        </web-app>
+            <web-app>
+                <servlet>
+                    <servlet-name></servlet-name>
+                    <servlet-class></servlet-class>
+                </servlet>
+                <servlet-mapping>
+                    <servlet-name></servlet-name>
+                    <url-pattern></url-pattern>
+                </servlet-mapping>
+            </web-app>
         """)
 
         xml.write_text(xml_content)
