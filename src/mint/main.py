@@ -4,20 +4,19 @@ import textwrap
 
 # print(Path.cwd())
 
-@click.command()
-@click.argument('target')
-@click.argument('folder')
-def main(target, folder):
+def shared_inputs(func):
+    func = click.argument('folder')(func)
+    return func
+
+@click.group()
+def main():
+    ''' Main CLI group '''
+    pass
+
+@main.command()
+@shared_inputs
+def flask(folder):
     base_dir = Path.cwd() / folder
-
-    target = target.lower()
-    if target == 'flask':
-        flask(base_dir)
-    elif target == 'servlet':
-        servlet(base_dir)
-
-
-def flask(base_dir):
     static_folder = base_dir / 'static'
     base_html = base_dir / 'templates' / 'base.html'
     index_html = base_dir / 'templates' / 'index.html'
@@ -136,11 +135,15 @@ def flask(base_dir):
     except FileExistsError:
         click.secho("Folder already exists", fg="red", bold=True)
         raise click.Abort()
-    except Exception:
-        click.secho("Couldn't generate boilerplate files!", fg="red", bold=True)
+    except Exception as e:
+        click.secho(f"Error: {e}", fg="red", bold=True)
         raise click.Abort()
 
-def servlet(base_dir):
+@main.command()
+@shared_inputs
+@click.option('--number', '-n', type=int, default=1)
+def servlet(folder, number):
+    base_dir = Path.cwd() / folder
     web_inf = base_dir / 'WEB-INF'
     classes = web_inf / 'classes'
     xml = web_inf / 'web.xml'
@@ -152,18 +155,24 @@ def servlet(base_dir):
         classes.mkdir(exist_ok=True)
         xml.touch(exist_ok=True)
 
-        xml_content = textwrap.dedent("""\
-            <web-app>
-                <servlet>
-                    <servlet-name></servlet-name>
-                    <servlet-class></servlet-class>
-                </servlet>
-                <servlet-mapping>
-                    <servlet-name></servlet-name>
-                    <url-pattern></url-pattern>
-                </servlet-mapping>
-            </web-app>
-        """)
+        inner_block = textwrap.dedent("""\
+            <servlet>
+                <servlet-name></servlet-name>
+                <servlet-class></servlet-class>
+            </servlet>
+            <servlet-mapping>
+                <servlet-name></servlet-name>
+                <url-pattern></url-pattern>
+            </servlet-mapping>
+        """).rstrip()
+
+        repeated_blocks = "\n\n".join([inner_block for _ in range(number)])
+
+        xml_content = "\n".join([
+            "<web-app>",
+            repeated_blocks,
+            "</web-app>"
+        ])
 
         xml.write_text(xml_content)
 
@@ -172,8 +181,8 @@ def servlet(base_dir):
     except FileExistsError:
         click.secho("Folder already exists", fg="red", bold=True)
         raise click.Abort()
-    except Exception:
-        click.secho("Couldn't generate boilerplate files!", fg="red", bold=True)
+    except Exception as e:
+        click.secho(f"Error: {e}", fg="red", bold=True)
         raise click.Abort()
 
 
