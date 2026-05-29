@@ -135,8 +135,8 @@ def flask(folder):
     except FileExistsError:
         click.secho("Folder already exists", fg="red", bold=True)
         raise click.Abort()
-    except Exception:
-        click.secho("Couldn't generate boilerplate files!", fg="red", bold=True)
+    except Exception as e:
+        click.secho(f"Error: {e}", fg="red", bold=True)
         raise click.Abort()
 
 @main.command()
@@ -181,8 +181,8 @@ def servlet(folder, number):
     except FileExistsError:
         click.secho("Folder already exists", fg="red", bold=True)
         raise click.Abort()
-    except Exception:
-        click.secho("Couldn't generate boilerplate files!", fg="red", bold=True)
+    except Exception as e:
+        click.secho(f"Error: {e}", fg="red", bold=True)
         raise click.Abort()
 
 
