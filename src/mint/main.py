@@ -1,7 +1,8 @@
 from pathlib import Path
-import click
+import rich_click as click
 import textwrap
 
+click.rich_click.USE_MARKDOWN = True
 # print(Path.cwd())
 
 def shared_inputs(func):
