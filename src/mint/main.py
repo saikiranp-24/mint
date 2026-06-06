@@ -10,7 +10,6 @@ def shared_inputs(func):
 
 @click.group()
 def main():
-    ''' Main CLI group '''
     pass
 
 @main.command()
