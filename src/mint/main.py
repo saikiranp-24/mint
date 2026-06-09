@@ -129,8 +129,6 @@ def flask(folder):
         index_html.write_text(index_content)
         app.write_text(app_content)
 
-        click.secho("Flask boilerplate generated successfully!", fg="green", bold=True)
-
     except FileExistsError:
         click.secho("Folder already exists", fg="red", bold=True)
         raise click.Abort()
@@ -174,8 +172,6 @@ def servlet(folder, number):
         ])
 
         xml.write_text(xml_content)
-
-        click.secho("Boilerplate generated successfully!", fg='green', bold=True)
 
     except FileExistsError:
         click.secho("Folder already exists", fg="red", bold=True)
