@@ -7,3 +7,4 @@ WEB-INF/
 .ruff_cache/
 *.egg-info/
 __pycache__/
+pyrightconfig.json
