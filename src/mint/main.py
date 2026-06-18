@@ -2,24 +2,25 @@ from pathlib import Path
 import click
 import textwrap
 
-# print(Path.cwd())
 
 def shared_inputs(func):
-    func = click.argument('folder')(func)
+    func = click.argument("folder")(func)
     return func
+
 
 @click.group()
 def main():
     pass
 
+
 @main.command()
 @shared_inputs
 def flask(folder):
     base_dir = Path.cwd() / folder
-    static_folder = base_dir / 'static'
-    base_html = base_dir / 'templates' / 'base.html'
-    index_html = base_dir / 'templates' / 'index.html'
-    app = base_dir / 'app.py'
+    static_folder = base_dir / "static"
+    base_html = base_dir / "templates" / "base.html"
+    index_html = base_dir / "templates" / "index.html"
+    app = base_dir / "app.py"
 
     try:
         base_dir.mkdir(exist_ok=False)
@@ -136,14 +137,15 @@ def flask(folder):
         click.secho(f"Error: {e}", fg="red", bold=True)
         raise click.Abort()
 
+
 @main.command()
 @shared_inputs
-@click.option('--number', '-n', type=int, default=1)
+@click.option("--number", "-n", type=int, default=1)
 def servlet(folder, number):
     base_dir = Path.cwd() / folder
-    web_inf = base_dir / 'WEB-INF'
-    classes = web_inf / 'classes'
-    xml = web_inf / 'web.xml'
+    web_inf = base_dir / "WEB-INF"
+    classes = web_inf / "classes"
+    xml = web_inf / "web.xml"
 
     try:
         base_dir.mkdir(exist_ok=False)
@@ -165,11 +167,7 @@ def servlet(folder, number):
 
         repeated_blocks = "\n\n".join([inner_block for _ in range(number)])
 
-        xml_content = "\n".join([
-            "<web-app>",
-            repeated_blocks,
-            "</web-app>"
-        ])
+        xml_content = "\n".join(["<web-app>", repeated_blocks, "</web-app>"])
 
         xml.write_text(xml_content)
 
@@ -181,5 +179,5 @@ def servlet(folder, number):
         raise click.Abort()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
