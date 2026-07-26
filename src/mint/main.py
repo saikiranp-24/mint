@@ -47,16 +47,16 @@ def servlet(folder, number, no_xml):
         template_path = Path(__file__).parent / "templates" / "servlet" / "core"
         shutil.copytree(template_path, base_dir, ignore=shutil.ignore_patterns(".gitkeep"))
 
+        if not no_xml:
+            with open(Path(__file__).parent / "templates" / "servlet" / "extra" / "web.xml", "r") as f:
+                web_xml = f.read()
 
-        with open(Path(__file__).parent / "templates" / "servlet" / "extra" / "web.xml", "r") as f:
-            web_xml = f.read()
+            repeated_content = "\n".join([web_xml for i in range(number)]).strip()
 
-        repeated_content = "\n".join([web_xml for i in range(number)]).strip()
+            xml_content = "\n".join(["<web-app>", repeated_content, "</web-app>"])
 
-        xml_content = "\n".join(["<web-app>", repeated_content, "</web-app>"])
-
-        with open(base_dir / "WEB-INF" / "web.xml", "w") as f:
-            f.write(xml_content)
+            with open(base_dir / "WEB-INF" / "web.xml", "w") as f:
+                f.write(xml_content)
 
     except FileExistsError:
         click.secho("Folder already exists", fg="red", bold=True)
