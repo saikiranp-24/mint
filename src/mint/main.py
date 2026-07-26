@@ -20,7 +20,7 @@ def flask(folder):
 
     try:
         template_path = Path(__file__).parent / "templates" / "flask" / "core"
-        shutil.copytree(template_path, base_dir)
+        shutil.copytree(template_path, base_dir, ignore=shutil.ignore_patterns(".gitkeep"))
     except FileExistsError:
         click.secho("Folder already exists", fg="red", bold=True)
         raise click.Abort()
@@ -45,7 +45,7 @@ def servlet(folder, number, no_xml):
 
     try:
         template_path = Path(__file__).parent / "templates" / "servlet" / "core"
-        shutil.copytree(template_path, base_dir)
+        shutil.copytree(template_path, base_dir, ignore=shutil.ignore_patterns(".gitkeep"))
 
 
         with open(Path(__file__).parent / "templates" / "servlet" / "extra" / "web.xml", "r") as f:
