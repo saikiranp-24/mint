@@ -34,7 +34,8 @@ def flask(folder):
 @shared_inputs
 @click.option("--number", "-n", type=int, default=1, help="Specify number of servlet objects in web.xml")
 @click.option("--no-xml", is_flag=True, default=False, help="Opt out of generating web.xml")
-def servlet(folder, number, no_xml):
+@click.option("--index", is_flag=True, default=False, help="Generate index.html")
+def servlet(folder, number, no_xml, index):
     base_dir = Path.cwd() / folder
 
     if no_xml and number != 1:
@@ -46,6 +47,10 @@ def servlet(folder, number, no_xml):
     try:
         template_path = Path(__file__).parent / "templates" / "servlet" / "core"
         shutil.copytree(template_path, base_dir, ignore=shutil.ignore_patterns(".gitkeep"))
+
+        if index:
+           index_html = base_dir / "index.html"
+           index_html.touch()
 
         if not no_xml:
             with open(Path(__file__).parent / "templates" / "servlet" / "extra" / "web.xml", "r") as f:
