@@ -32,8 +32,8 @@ def flask(folder):
 
 @main.command()
 @shared_inputs
-@click.option("--number", "-n", type=int, default=1)
-@click.option("--no-xml", is_flag=True, default=False)
+@click.option("--number", "-n", type=int, default=1, help="Specify number of servlet objects in web.xml")
+@click.option("--no-xml", is_flag=True, default=False, help="Opt out of generating web.xml")
 def servlet(folder, number, no_xml):
     base_dir = Path.cwd() / folder
 
