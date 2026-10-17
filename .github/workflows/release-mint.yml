@@ -1,0 +1,159 @@
+name: Release workflow for mint
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-on-matrix:
+    env:
+      ARCHIVE: mint-${{ github.ref_name }}-${{ matrix.target }}.${{ matrix.archive_ext }}
+    name: Build mint on matrix
+    strategy:
+      matrix:
+        include:
+          # Linux
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-glibc
+            archive_ext: tar.gz
+          - host: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-glibc
+            archive_ext: tar.gz
+
+          # macOS
+          - host: macos-15-intel
+            target: x86_64-apple-darwin
+            archive_ext: tar.gz
+          - host: macos-latest
+            target: aarch64-apple-darwin
+            archive_ext: tar.gz
+
+          # Windows
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
+            archive_ext: zip
+          - host: windows-11-arm
+            target: aarch64-pc-windows-msvc
+            archive_ext: zip
+
+    runs-on: ${{ matrix.host }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884
+        with:
+          enable-cache: false
+
+      - name: Install dependencies
+        run: |
+          uv venv --python 3.14
+          uv pip install nuitka
+
+      - name: Build mint
+        shell: bash
+        run: |
+          uv run python -m nuitka \
+          --standalone \
+          --onefile \
+          --lto=yes \
+          --enable-plugin=anti-bloat \
+          --include-data-dir=./src/mint/templates=templates \
+          --assume-yes-for-downloads \
+          --remove-output \
+          --output-filename=mint \
+          ./src/mint/main.py
+
+      - name: Test artifact (Linux and macOS)
+        if: runner.os != 'Windows'
+        run: |
+          chmod +x mint
+          ./mint --help
+
+      - name: Test the artifact (Windows)
+        if: runner.os == 'Windows'
+        run: ./mint.exe --help
+
+      - name: Create archive (Linux and macOS)
+        if: runner.os != 'Windows'
+        run: |
+          chmod +x mint
+          tar -czvf "${{ env.ARCHIVE }}" mint LICENSE
+          sha256sum "${{ env.ARCHIVE }}" > "checksum-${{ matrix.target }}.txt"
+
+      - name: Create archive (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          7z a "${{ env.ARCHIVE }}" mint.exe LICENSE
+          sha256sum "${{ env.ARCHIVE }}" > "checksum-${{ matrix.target }}.txt"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.ARCHIVE }}
+          path: |
+            ${{ env.ARCHIVE }}
+            checksum-${{ matrix.target }}.txt
+
+  build-on-alpine:
+    name: Build mint on alpine
+    env:
+      ARCHIVE: mint-${{ github.ref_name }}-${{ matrix.target }}.${{ matrix.archive_ext }}
+    strategy:
+      matrix:
+        include:
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            archive_ext: tar.gz
+          - host: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-musl
+            archive_ext: tar.gz
+
+    runs-on: ${{ matrix.host }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build inside container
+        run: |
+          docker run --rm \
+          -v .:/workspace -w /workspace \
+          ghcr.io/saikiranp-24/mint-alpine-builder:latest \
+          bash -c "
+            python -m nuitka \
+            --standalone \
+            --onefile \
+            --lto=yes \
+            --enable-plugin=anti-bloat \
+            --include-data-dir=./src/mint/templates=templates \
+            --assume-yes-for-downloads \
+            --remove-output \
+            --output-filename=mint \
+            ./src/mint/main.py \
+            && chmod +x mint \
+            && ./mint --help
+          "
+
+      - name: Create archive
+        run: |
+          tar -czvf "${{ env.ARCHIVE }}" mint LICENSE
+          sha256sum "${{ env.ARCHIVE }}" > "checksum-${{ matrix.target }}.txt"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.ARCHIVE }}
+          path: |
+            ${{ env.ARCHIVE }}
+            checksum-${{ matrix.target }}.txt
+
