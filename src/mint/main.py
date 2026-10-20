@@ -3,12 +3,16 @@ import click
 import shutil
 
 
+__version__ = "0.1.0"
+
+
 def shared_inputs(func):
     func = click.argument("folder")(func)
     return func
 
 
 @click.group()
+@click.version_option(__version__, "--version", "-v", message="mint %(version)s")
 def main():
     pass
 
