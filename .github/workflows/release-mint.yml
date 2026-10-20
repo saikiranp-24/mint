@@ -83,7 +83,6 @@ jobs:
       - name: Create archive (Linux and macOS)
         if: runner.os != 'Windows'
         run: |
-          chmod +x mint
           tar -czvf "${{ env.ARCHIVE }}" mint LICENSE
           sha256sum "${{ env.ARCHIVE }}" > "checksum-${{ matrix.target }}.txt"
 
@@ -156,4 +155,136 @@ jobs:
           path: |
             ${{ env.ARCHIVE }}
             checksum-${{ matrix.target }}.txt
+
+  create-release:
+    name: Create GitHub Release
+    needs: [build-on-matrix, build-on-alpine]
+
+    runs-on: ubuntu-latest
+
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd dist
+          cat checksum-*.txt > sha256sums.txt
+          gh release create ${{ github.ref_name }} *
+
+  update-brew-tap:
+    name: Update homebrew tap
+    needs: [build-on-matrix, build-on-alpine, create-release]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout tap
+        uses: actions/checkout@v7
+        with:
+          repository: saikiranp-24/homebrew-tap
+          token: ${{ secrets.BREW_TAP_PAT }}
+
+      - name: Update tap
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ github.ref_name }}"
+          export VERSION="${TAG#v}"
+
+          gh release download "v${VERSION}" --repo ${{ github.repository }} --pattern "sha256sums.txt"
+
+          export LINUX_INTEL_SHA=$(grep x86_64-unknown-linux-glibc sha256sums.txt | awk '{print $1}')
+          export LINUX_ARM_SHA=$(grep aarch64-unknown-linux-glibc sha256sums.txt | awk '{print $1}')
+          export MAC_INTEL_SHA=$(grep x86_64-apple-darwin sha256sums.txt | awk '{print $1}')
+          export MAC_ARM_SHA=$(grep aarch64-apple-darwin sha256sums.txt | awk '{print $1}')
+
+          envsubst < mint.rb.template > Formula/mint.rb
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/mint.rb
+          if ! git diff --cached --quiet; then
+            git commit -m "Update version to ${VERSION}"
+          fi
+          git push
+
+  update-scoop-bucket:
+    name: Update scoop bucket
+
+    needs: [build-on-matrix, build-on-alpine, create-release]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout tap
+        uses: actions/checkout@v7
+        with:
+          repository: saikiranp-24/scoop-bucket
+          token: ${{ secrets.SCOOP_BUCKET_PAT }}
+
+      - name: Update bucket
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+
+          gh release download "v${VERSION}" --repo ${{ github.repository }} --pattern "sha256sums.txt"
+
+          HASH_AMD64=$(grep x86_64-pc-windows-msvc sha256sums.txt | awk '{print $1}')
+          HASH_ARM64=$(grep aarch64-pc-windows-msvc sha256sums.txt | awk '{print $1}')
+
+          jq --arg v "$VERSION" \
+             --arg h64 "$HASH_AMD64" \
+             --arg harm "$HASH_ARM64" \
+             '.version = $v |
+              architecture."64bit".hash = $h64 |
+              architecture."64bit".url = "https://github.com/saikiranp-24/mint/releases/download/v\($v)/mint-v\($v)-x86_64-pc-windows-msvc.zip" |
+              architecture."arm64".hash = $harm |
+              architecture."arm64".url = "https://github.com/saikiranp-24/mint/releases/download/v\($v)/mint-v\($v)-aarch64-pc-windows-msvc.zip"' \
+              mint.json > tmp.json && mv tmp.json mint.json
+
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add mint.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Update version to ${VERSION}"
+          fi
+          git push
+
+  deploy-docs:
+    needs: [build-on-matrix, build-on-alpine, create-release]
+    name: Deploy docs to GitHub pages
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884
+        with:
+          enable-cache: false
+
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv pip install mkdocs-material
+
+      - name: Deploy to GitHub Pages
+        run: uv run mkdocs gh-deploy --force
 
