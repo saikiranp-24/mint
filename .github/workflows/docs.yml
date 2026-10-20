@@ -1,0 +1,32 @@
+name: Deploy Documentation
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884
+        with:
+          enable-cache: false
+
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv pip install mkdocs-material
+
+      - name: Deploy to GitHub Pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: uv run mkdocs gh-deploy --force
