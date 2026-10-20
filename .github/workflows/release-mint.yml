@@ -230,7 +230,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout tap
+      - name: Checkout bucket
         uses: actions/checkout@v7
         with:
           repository: saikiranp-24/scoop-bucket
@@ -249,13 +249,13 @@ jobs:
           HASH_ARM64=$(grep aarch64-pc-windows-msvc sha256sums.txt | awk '{print $1}')
 
           jq --arg v "$VERSION" \
-             --arg h64 "$HASH_AMD64" \
-             --arg harm "$HASH_ARM64" \
-             '.version = $v |
-              architecture."64bit".hash = $h64 |
-              architecture."64bit".url = "https://github.com/saikiranp-24/mint/releases/download/v\($v)/mint-v\($v)-x86_64-pc-windows-msvc.zip" |
-              architecture."arm64".hash = $harm |
-              architecture."arm64".url = "https://github.com/saikiranp-24/mint/releases/download/v\($v)/mint-v\($v)-aarch64-pc-windows-msvc.zip"' \
+            --arg h64 "$HASH_AMD64" \
+            --arg harm "$HASH_ARM64" \
+            '.version = $v |
+              .["architecture"]["64bit"].hash = $h64 |
+              .["architecture"]["64bit"].url = "https://github.com/saikiranp-24/mint/releases/download/v\($v)/mint-v\($v)-x86_64-pc-windows-msvc.zip" |
+              .["architecture"]["arm64"].hash = $harm |
+              .["architecture"]["arm64"].url = "https://github.com/saikiranp-24/mint/releases/download/v\($v)/mint-v\($v)-aarch64-pc-windows-msvc.zip"' \
               mint.json > tmp.json && mv tmp.json mint.json
 
 
