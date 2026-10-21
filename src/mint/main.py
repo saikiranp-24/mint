@@ -25,6 +25,9 @@ def flask(folder):
     try:
         template_path = Path(__file__).parent / "templates" / "flask" / "core"
         shutil.copytree(template_path, base_dir, ignore=shutil.ignore_patterns(".gitkeep"))
+        tpl_file = Path(base_dir) / "app.py.tpl"
+        if tpl_file.exists():
+            tpl_file.rename(Path(base_dir) / "app.py")
     except FileExistsError:
         click.secho("Folder already exists", fg="red", bold=True)
         raise click.Abort()
