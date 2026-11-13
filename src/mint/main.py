@@ -65,7 +65,7 @@ def servlet(folder, number, no_xml, index):
 
             repeated_content = "\n".join([web_xml for i in range(number)]).strip()
 
-            xml_content = "\n".join(["<web-app>", repeated_content, "</web-app>"])
+            xml_content = f"<web-app>\n{repeated_content}\n</web-app>\n"
 
             with open(base_dir / "WEB-INF" / "web.xml", "w") as f:
                 f.write(xml_content)
