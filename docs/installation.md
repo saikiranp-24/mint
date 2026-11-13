@@ -13,21 +13,11 @@ or install with homebrew
 ```bash
 brew install saikiranp-24/tap/mint
 ```
-or
-```bash
-brew tap saikiranp-24/tap
-brew install mint
-```
 
 #### macOS
 Install with homebrew
 ```bash
 brew install saikiranp-24/tap/mint
-```
-or
-```bash
-brew tap saikiranp-24/tap
-brew install mint
 ```
 
 ### Windows
